@@ -8,55 +8,41 @@ public abstract class Key implements Serializable {
 
 	protected String nome;
 
-	protected byte[] encryptedPassword;
+	protected String password;
 
-	protected String sito;
+	protected String descrizione;
 
-	protected byte[] encryptedUser;
+	protected String utente;
 
 	protected Key() {
 	}
 	
-	public Key(String nome, String sito, String utente, String password) {
+	public Key(String nome, String descrizione, String utente, String password) {
 		this.nome = nome;
-		this.sito = sito;
-		try {
-			this.encryptedPassword = password.getBytes("US-ASCII");
-			this.encryptedUser = utente.getBytes("US-ASCII");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.descrizione = descrizione;
+		this.utente = utente;
+		this.password = password;
 	}
 
 	public String getNome() {
-		return this.nome;
+		return nome;
 	}
 
 	public String getPassword() {
-		try {
-			return new String(encryptedPassword, "US-ASCII");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return null;
+		return password;
 	}
 
-	public String getSito() {
-		return this.sito;
+	public String getdescrizione() {
+		return this.descrizione;
 	}
 
 	public String getUtente() {
-		try {
-			return new String(encryptedUser, "US-ASCII");
-		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return null;
+		return utente;
+	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getCanonicalName() +   " [nome=" + nome + ", password=" + password + ", descrizione=" + descrizione + ", utente=" + utente + "]";
 	}
 
 }

@@ -1,6 +1,5 @@
 package mysite.keyring.model;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -15,5 +14,10 @@ public interface KeyRing extends Serializable{
 
 	public List<Key> listKeys();
 	
+	public boolean open(String password);
+	
 	public void close(boolean save);
+
+	public boolean init(String password);
+
 }

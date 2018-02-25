@@ -33,88 +33,20 @@ public class EncriptedToFileKeyRing implements KeyRing {
 	private static final long serialVersionUID = 1L;
 
 	private static final String keyStore = "keystore";   
-	private static final String  password = "1234567812345678";
+	private String  password;
 	
 	Map<String, Key> keys;
 	
-	@SuppressWarnings("unchecked")
 	public EncriptedToFileKeyRing() {
+		password = "";
+		
 		File f = new File(keyStore);
 		if(!f.exists())
 		{
 			System.out.println("non tovato " + keyStore + " creo nuovo keyring");
 			keys = new HashMap<>();
 			return;
-		}
-		
-		
-		try {
-			Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
-			
-			try {
-				SecretKeySpec sks = new SecretKeySpec(password.getBytes("UTF-8"), "AES");
-				
-				try {
-					c.init(Cipher.DECRYPT_MODE, sks, new IvParameterSpec(password.getBytes("UTF-8")));
-					
-					FileInputStream fileInStream = null;
-					try {
-						fileInStream = new FileInputStream(keyStore);
-
-						byte[] plainIn = new byte[16368]; 
-						int n;
-						n = fileInStream.read(plainIn);
-						if(n==-1)
-						{
-							throw new RuntimeException("keystore troppo grande");
-						}
-						
-						try {
-							byte[] encIn = c.doFinal(plainIn, 0, n);
-							
-							ObjectInputStream inStream = null;
-							inStream = new ObjectInputStream(new ByteArrayInputStream(encIn));
-
-							try {
-								keys = (Map<String, Key>)inStream.readObject();
-							} catch (ClassNotFoundException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} 
-						} catch (IllegalBlockSizeException | BadPaddingException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} finally {
-						if(fileInStream != null)
-						{
-							try {
-								fileInStream.close();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					}
-
-				} catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-			} catch (UnsupportedEncodingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-					
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} 
+		}		
 	}
 	
 	@Override
@@ -152,7 +84,82 @@ public class EncriptedToFileKeyRing implements KeyRing {
 	}
 
 	@Override
+	public boolean init(String password) {
+		this.password = password;
+		close(true);
+		
+		return true;
+	}
+	
+	
+	@Override
+	@SuppressWarnings("unchecked")
+	public boolean open(String password) {
+		byte[] plainIn = new byte[16368]; 
+		int readBytes = -1;
+		
+		this.password = password;
+
+		FileInputStream fileInStream = null;
+		try {
+			fileInStream = new FileInputStream(keyStore);
+
+			readBytes = fileInStream.read(plainIn);
+			if(readBytes==-1)
+			{
+				throw new RuntimeException("keystore troppo grande");
+			}
+		} catch (IOException e) {
+			return false;
+		} finally {
+			if(fileInStream != null)
+			{
+				try {
+					fileInStream.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		try {
+			Cipher c = Cipher.getInstance("AES/CBC/PKCS5Padding");
+			try {
+				SecretKeySpec sks = new SecretKeySpec(password.getBytes("UTF-8"), "AES");
+				c.init(Cipher.DECRYPT_MODE, sks, new IvParameterSpec(password.getBytes("UTF-8")));
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			byte[] encIn = c.doFinal(plainIn, 0, readBytes);
+			
+			try {
+				ObjectInputStream inStream = null;
+				inStream = new ObjectInputStream(new ByteArrayInputStream(encIn));
+				keys = (Map<String, Key>)inStream.readObject();
+			} catch (ClassNotFoundException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}			
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException  | InvalidKeyException | 
+					InvalidAlgorithmParameterException | IllegalBlockSizeException | BadPaddingException e ) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
 	public void close(boolean save) {
+		if(password==null || password.equals(""))
+		{
+			return;
+		}
 		if(!save)
 		{
 			return;

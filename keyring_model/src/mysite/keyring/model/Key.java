@@ -1,7 +1,6 @@
 package mysite.keyring.model;
 
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 
 public abstract class Key implements Serializable {
 	private static final long serialVersionUID = 1L;

@@ -23,10 +23,6 @@ public class KeyRingMockup implements KeyRing {
 	
 	public KeyRingMockup() {
 		keys = new HashMap<>();
-		for(Key key:keysArray)
-		{
-			keys.put(key.getNome(), key);
-		}
 	}
 	
 	@Override
@@ -61,6 +57,22 @@ public class KeyRingMockup implements KeyRing {
 	@Override
 	public List<Key> listKeys() {
 		return new ArrayList<Key>(keys.values());
+	}
+
+	@Override
+	public boolean init(String password) {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
+	@Override
+	public boolean open(String password) {
+		for(Key key:keysArray)
+		{
+			keys.put(key.getNome(), key);
+		}
+
+		return true;
 	}
 
 	@Override
